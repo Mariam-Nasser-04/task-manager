@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Task Manager</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body data-theme="light">
+    <div class="container">
+        <div class="header">
+            <h1>TaskMaster</h1>
+            <div class="header-actions">
+                <button id="themeToggle" class="icon-btn" aria-label="Toggle theme">
+                    <i class="fas fa-moon"></i>
+                </button>
+                <a href="{{ url_for('logout') }}" class="logout-btn">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </a>
+            </div>
+        </div>
+
+        <div class="welcome-section">
+            <h2>Welcome back, <span class="username">{{ user.username }}</span>!</h2>
+            <div class="stats">
+                <span class="stat-item"><i class="fas fa-tasks"></i> {{ tasks|length }} total</span>
+                <span class="stat-item"><i class="fas fa-check-circle"></i> {{ tasks | selectattr('is_done') | list | length }} done</span>
+                <span class="stat-item"><i class="fas fa-hourglass-half"></i> {{ tasks | rejectattr('is_done') | list | length }} pending</span>
+            </div>
+        </div>
+
+        <form action="{{ url_for('add_task') }}" method="POST" class="task-form">
+            <div class="input-group">
+                <input type="text" name="content" placeholder="What needs to be done?" required>
+                <button type="submit" class="primary-btn">
+                    <i class="fas fa-plus"></i> Add
+                </button>
+            </div>
+        </form>
+
+        <div class="task-list">
+            {% for task in tasks %}
+                <div class="task-item {% if task.is_done %}done{% endif %}">
+                    <div class="task-content">
+                        {% if task.is_done %}
+                            <i class="fas fa-check-circle complete-icon"></i>
+                        {% else %}
+                            <i class="far fa-circle incomplete-icon"></i>
+                        {% endif %}
+                        <span>{{ task.content }}</span>
+                    </div>
+                    <div class="task-actions">
+                        {% if task.is_done %}
+                            <a href="{{ url_for('incomplete_task', task_id=task.id) }}" 
+                               class="action-btn incomplete-btn"
+                               onclick="showToast('Task marked incomplete!')">
+                                <i class="fas fa-undo"></i> Undo
+                            </a>
+                        {% else %}
+                            <a href="{{ url_for('complete_task', task_id=task.id) }}" 
+                               class="action-btn complete-btn"
+                               onclick="showToast('Task completed!')">
+                                <i class="fas fa-check"></i> Complete
+                            </a>
+                        {% endif %}
+                        <a href="{{ url_for('delete_task', task_id=task.id) }}" 
+                           class="action-btn delete-btn"
+                           onclick="return confirm('Are you sure you want to delete this task?')">
+                            <i class="fas fa-trash"></i> Delete
+                        </a>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div id="summaryModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Welcome to TaskMaster!</h2>
+                <button onclick="closeModal()" class="close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="user-greeting">
+                    <i class="fas fa-user-circle"></i>
+                    <h3>Hello, {{ user.username }}!</h3>
+                </div>
+                <div class="stats-container">
+                    <div class="stat-card">
+                        <i class="fas fa-clipboard-list"></i>
+                        <div>
+                            <span class="stat-number">{{ tasks|length }}</span>
+                            <span class="stat-label">Total Tasks</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <i class="fas fa-check-double"></i>
+                        <div>
+                            <span class="stat-number">{{ tasks | selectattr('is_done') | list | length }}</span>
+                            <span class="stat-label">Completed</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <i class="fas fa-clock"></i>
+                        <div>
+                            <span class="stat-number">{{ tasks | rejectattr('is_done') | list | length }}</span>
+                            <span class="stat-label">Pending</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="quote-container">
+                    <i class="fas fa-quote-left"></i>
+                    <blockquote id="quoteText"></blockquote>
+                    <i class="fas fa-quote-right"></i>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button onclick="closeModal()" class="primary-btn">Let's Get Started!</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Theme toggle with icon change
+        document.getElementById('themeToggle').addEventListener('click', () => {
+            const html = document.documentElement;
+            const currentTheme = html.getAttribute("data-theme");
+            const newTheme = currentTheme === "light" ? "dark" : "light";
+            html.setAttribute("data-theme", newTheme);
+            
+            // Update icon
+            const icon = document.querySelector('#themeToggle i');
+            icon.className = newTheme === "dark" ? "fas fa-sun" : "fas fa-moon";
+            
+            // Save preference to localStorage
+            localStorage.setItem('theme', newTheme);
+        });
+
+        // Check for saved theme preference
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+        
+        // Set initial icon
+        const icon = document.querySelector('#themeToggle i');
+        icon.className = savedTheme === "dark" ? "fas fa-sun" : "fas fa-moon";
+
+        // Quote logic
+        const quotes = [
+            "Believe you can and you're halfway there. - Theodore Roosevelt",
+            "Success is not final, failure is not fatal: It is the courage to continue that counts. - Winston Churchill",
+            "The future depends on what you do today. - Mahatma Gandhi",
+            "Dream big and dare to fail. - Norman Vaughan",
+            "Keep going. Everything you need will come to you at the perfect time. - Unknown",
+            "Every accomplishment starts with the decision to try. - John F. Kennedy",
+            "Productivity is never an accident. It's always the result of a commitment to excellence. - Paul J. Meyer"
+        ];
+
+        // Show modal with random quote
+        window.onload = function () {
+            const randomQuote = quotes[Math.floor(Math.random() * quotes.length)];
+            document.getElementById("quoteText").textContent = randomQuote;
+            document.getElementById("summaryModal").style.display = "flex";
+        };
+
+        // Close modal function
+        function closeModal() {
+            document.getElementById("summaryModal").style.display = "none";
+        }
+
+        // Toast notification function
+        function showToast(message) {
+            // You can implement toast notifications here
+            alert(message); // Temporary solution
+        }
+    </script>
+
+    <script src="{{ url_for('static', filename='main.js') }}"></script>
+</body>
+</html>

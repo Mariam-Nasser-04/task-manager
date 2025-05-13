@@ -1,0 +1,50 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyc
+*.pyo
+*.pyd
+.python-version
+
+# Environment files
+.env
+.env.*
+.venv/
+venv/
+
+# IDE and editor files
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Git
+.git/
+.gitignore
+
+# Database files (excluding instance directory which we mount)
+*.db
+*.sqlite
+
+# Local development files
+*.log
+logs/
+
+# Static and cache
+staticfiles/
+.cache/
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+
+# Documentation
+docs/
+*.md
+
+# Docker files (we need these)
+# Dockerfile
+# docker-compose.yml
+# .dockerignore
