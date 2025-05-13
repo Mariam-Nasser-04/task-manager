@@ -1,6 +1,6 @@
 # TaskMaster - Task Management System
 
-![TaskMaster Screenshot]('task-manager/images/img (4).png') 
+![TaskMaster Screenshot](task-manager/images/img (4).png) 
 
 ## 🚀 Features
 - User authentication (Login/Register)
