@@ -1,23 +1,29 @@
+# Use Python 3.11 slim as the base image
 FROM python:3.11-slim
 
+# Set the working directory inside the container
 WORKDIR /app
 
-# نسخ الملفات مع الهيكل الصحيح
+# Copy requirements file first (allows for better caching)
 COPY requirements.txt .
+
+# Copy the app directory with its structure
 COPY app ./app
 
-# تثبيت المتطلبات
+# Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-# إنشاء مجلد instance مع الصلاحيات
+# Create instance directory and set permissions (for SQLite DB)
 RUN mkdir -p /app/app/instance && \
     chmod -R 777 /app/app/instance
 
-# متغيرات البيئة
-ENV FLASK_APP=app/app.py
-ENV FLASK_ENV=production
-ENV DATABASE_URL=sqlite:////app/app/instance/data.db
+# Set environment variables
+ENV FLASK_APP=app/app.py       # Entry point for Flask
+ENV FLASK_ENV=production      # Production mode (no debug)
+ENV DATABASE_URL=sqlite:////app/app/instance/data.db  # DB path
 
+# Expose port 5000 (default Flask port)
 EXPOSE 5000
 
+# Command to run the Flask application
 CMD ["python", "-m", "flask", "run", "--host=0.0.0.0"]
