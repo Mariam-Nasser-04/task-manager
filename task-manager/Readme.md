@@ -1,7 +1,5 @@
 # TaskMaster - Task Management System
 
-![TaskMaster Screenshot](screenshots/app-preview.png) *(Add a screenshot later)*
-
 ## 🚀 Features
 - User authentication (Login/Register)
 - Create, edit, and delete tasks
